@@ -60,6 +60,15 @@ services:
     networks:
       - elk
 
+  halin:
+    image: mdavidallen/halin:latest
+    hostname: halin
+    container_name: halin
+    ports:
+      - "3000:3000"
+    networks:
+      - elk      
+
   metricbeat:
     image: store/elastic/metricbeat:7.5.0
     hostname: metricbeat
