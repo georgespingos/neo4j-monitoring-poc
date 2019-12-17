@@ -1,0 +1,90 @@
+version: '3.2'
+
+services:
+  elasticsearch:
+    build:
+      context: elasticsearch/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - type: bind
+        source: ./elasticsearch/config/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        read_only: true
+      - type: volume
+        source: elasticsearch
+        target: /usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ELASTIC_PASSWORD: changeme
+    networks:
+      - elk
+
+  kibana:
+    build:
+      context: kibana/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - type: bind
+        source: ./kibana/config/kibana.yml
+        target: /usr/share/kibana/config/kibana.yml
+        read_only: true
+    ports:
+      - "5601:5601"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
+  neo4j:
+    image: neo4j:3.5.13-enterprise
+    hostname: neo4j
+    container_name: neo4j
+    volumes:
+      - type: bind
+        source: ./neo4j
+        target: /var/lib/neo4j/conf
+        read_only: false
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+      - "7473:7473"
+      - "2004:2004"
+    environment: 
+      NEO4J_AUTH: "none"
+      NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+    networks:
+      - elk
+
+  metricbeat:
+    image: store/elastic/metricbeat:7.5.0
+    hostname: metricbeat
+    container_name: metricbeat
+    volumes:
+      - type: bind
+        source: ./metricbeat/metricbeat.yml
+        target: /usr/share/metricbeat/metricbeat.yml
+        read_only: false
+      - type: bind
+        source: ./metricbeat/modules.d
+        target: /usr/share/metricbeat/modules.d
+        read_only: false
+    environment:
+      setup.kibana.host: "kibana:5601"
+      output.elasticsearch.hosts: "elasticsearch:9200"
+      WAIT_FOR_HOSTS: "elasticsearch:9200 kibana:5601"
+      HOST_ELASTICSEARCH: "elasticsearch:9200"
+      HOST_KIBANA: "kibana:5601"
+    networks:
+      - elk
+    depends_on:
+      - neo4j
+networks:
+  elk:
+    driver: bridge
+volumes:
+  elasticsearch:
