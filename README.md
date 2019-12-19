@@ -1,9 +1,9 @@
 ## Proof of concept for monitoring neo4j
 ___
 
-A preconfigured  neo4j enterprise edition single cluster installlation which 
+A preconfigured  neo4j enterprise edition single cluster installation which 
 exposes metrics through a Prometheus endpoint. Metrics as shipped to 
-ElasticSearch for indexing and visualisation plus an open source GUI for
+ElasticSearch for indexing and visualization plus an open source GUI for
 monitoring neo4j cluster with basic dashboards already setup.
 
 Run `docker compose up` to spin up:
